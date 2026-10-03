@@ -1,13 +1,13 @@
 ﻿// See https://aka.ms/new-console-template for more information
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Opc.Ua;
 using Opc.Ua.Client;
+using OpcUaRefresher.Models;
+using OpcUaRefresher.services;
 
 
 Console.WriteLine("Minimal OPC UA client example");
-HostApplicationBuilder builder = Host.CreateApplicationBuilder();
+var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseUrls("http://localhost:5000");
 builder.Services.AddLogging(options =>
 {
     options.ClearProviders();
@@ -45,6 +45,17 @@ builder.Services.AddOpcUa().AddClient(options =>
     options.MaxNotificationsPerPublish = 1000;
     options.Priority = 0;
 }).AddAlarms();
-builder.Services.AddHostedService<OpcUaSubscriberService>();
-var host = builder.Build();
-await host.RunAsync();
+builder.Services.AddSingleton<OpcUaSubscriberService>();
+builder.Services.AddSingleton<IOpcUaSubscriberService>(provider => provider.GetRequiredService<OpcUaSubscriberService>());
+builder.Services.AddControllers();
+builder.Services.AddHostedService(provider => provider.GetRequiredService<OpcUaSubscriberService>());
+builder.Services.RegisterComponents();
+var app = builder.Build();
+
+var bufferTankService = app.Services.GetRequiredService<IBufferTankService>();
+bufferTankService.RegisterSensors();
+
+app.MapControllers();
+app.MapGet("/", () => "Hello World!");
+
+await app.RunAsync();

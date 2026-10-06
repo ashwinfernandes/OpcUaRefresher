@@ -24,9 +24,7 @@ internal sealed class OpcUaSubscriberService(ILogger<OpcUaSubscriberService> log
             this.session = await connect(cancellationToken);
             logger.LogInformation("Connected to OPC UA server: {Endpoint}", this.session.Endpoint.EndpointUrl);
 
-            await Task.WhenAll(registeredSensors.Select(MonitorAsync));
-
-            await Task.Delay(Timeout.Infinite, cancellationToken);
+            await Task.WhenAll(registeredSensors.Select(sensor => MonitorAsync(sensor, cancellationToken)));
         }
         catch (OperationCanceledException)
         {
@@ -60,7 +58,7 @@ internal sealed class OpcUaSubscriberService(ILogger<OpcUaSubscriberService> log
         }
     }
 
-    private Task MonitorAsync(ISensor sensor)
+    private Task MonitorAsync(ISensor sensor, CancellationToken ct)
     {
         if (session == null)
         {
@@ -72,7 +70,7 @@ internal sealed class OpcUaSubscriberService(ILogger<OpcUaSubscriberService> log
             throw new ArgumentException($"Sensor '{sensor.Name}' is not registered for monitoring.");
         }
 
-        return MonitorAsync(session, sensor, nodeId, CancellationToken.None);
+        return MonitorAsync(session, sensor, nodeId, ct);
     }
 
     public void RegisterSensor(ISensor sensor)

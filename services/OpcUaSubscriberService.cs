@@ -60,13 +60,21 @@ internal sealed class OpcUaSubscriberService(ILogger<OpcUaSubscriberService> log
         {
             if (StatusCode.IsBad(change.Value.StatusCode))
             {
+                sensor.Update(0, Quality.Bad, change.Value.SourceTimestamp.ToDateTime());
                 logger.LogWarning("{Name}: bad status {Status}", sensor.Name, change.Value.StatusCode);
                 continue;
             }
 
-            if (change.Value.WrappedValue.TryGetValue(out double value))
+            if (StatusCode.IsUncertain(change.Value.StatusCode) && change.Value.WrappedValue.TryGetValue(out double value))
             {
-                sensor.Value = value;
+                sensor.Update(value, Quality.Uncertain, change.Value.SourceTimestamp.ToDateTime());
+                logger.LogWarning("{Name}: uncertain status {Status}", sensor.Name, change.Value.StatusCode);
+                continue;
+            }
+
+            if (change.Value.WrappedValue.TryGetValue(out value))
+            {
+                sensor.Update(value, Quality.Good, change.Value.SourceTimestamp.ToDateTime());
             }
 
             logger.LogInformation("{Name}: {Value} ({Status})",

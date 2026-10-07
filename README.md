@@ -128,7 +128,6 @@ This project is intentionally small. Things it does **not** do yet:
 
 **Data model**
 
-- [ ] Add `Quality` and `Timestamp` (from the OPC UA `DataValue`) to `ISensor`
 - [ ] Represent "no data yet" explicitly and return it from the API
 - [ ] Support Boolean, Int16/32 and Float values, with optional scaling to engineering units
 

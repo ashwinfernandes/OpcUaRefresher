@@ -18,21 +18,37 @@ internal sealed class OpcUaSubscriberService(ILogger<OpcUaSubscriberService> log
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         logger.LogInformation("OPC UA Subscriber Service is starting.");
+        var delay = TimeSpan.FromSeconds(1);
+        var maxDelay = TimeSpan.FromSeconds(30);
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            try
+            {
+                this.session = await connect(cancellationToken);
+                logger.LogInformation("Connected to OPC UA server: {Endpoint}", this.session.Endpoint.EndpointUrl);
 
-        try
-        {
-            this.session = await connect(cancellationToken);
-            logger.LogInformation("Connected to OPC UA server: {Endpoint}", this.session.Endpoint.EndpointUrl);
+                await Task.WhenAll(registeredSensors.Select(sensor => MonitorAsync(sensor, cancellationToken)));
+            }
+            catch (OperationCanceledException)
+            {
+                logger.LogInformation("OPC UA Subscriber Service is stopping.");
+                break;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "OPC UA session failed; retrying in {Delay} seconds", delay.TotalSeconds);
+            }
 
-            await Task.WhenAll(registeredSensors.Select(sensor => MonitorAsync(sensor, cancellationToken)));
-        }
-        catch (OperationCanceledException)
-        {
-            logger.LogInformation("OPC UA Subscriber Service is stopping.");
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "An error occurred while executing the OPC UA Subscriber Service.");
+            try
+            {
+                await Task.Delay(delay, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                logger.LogInformation("OPC UA Subscriber Service is stopping.");
+                break;
+            }
+            delay = TimeSpan.FromSeconds(Math.Min(delay.TotalSeconds * 2, maxDelay.TotalSeconds));
         }
     }
 

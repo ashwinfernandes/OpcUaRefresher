@@ -52,13 +52,13 @@ flowchart LR
 
 ## Project layout
 
-| Path | Purpose |
-| --- | --- |
-| `Program.cs` | Host setup, OPC UA client configuration, DI wiring |
-| `services/OpcUaSubscriberService.cs` | Connects to the server and monitors registered sensors |
-| `services/BufferTankService.cs` | Registers the tank's sensors with the subscriber |
-| `Models/` | `ISensor`, `LiquidLevel`, `BufferTank` and DI registrations |
-| `api/BufferTankController.cs` | REST endpoint |
+| Path                                 | Purpose                                                     |
+| ------------------------------------ | ----------------------------------------------------------- |
+| `Program.cs`                         | Host setup, OPC UA client configuration, DI wiring          |
+| `services/OpcUaSubscriberService.cs` | Connects to the server and monitors registered sensors      |
+| `services/BufferTankService.cs`      | Registers the tank's sensors with the subscriber            |
+| `Models/`                            | `ISensor`, `LiquidLevel`, `BufferTank` and DI registrations |
+| `api/BufferTankController.cs`        | REST endpoint                                               |
 
 ## Getting started
 
@@ -97,16 +97,16 @@ flowchart LR
 
 All settings are currently hard-coded in `Program.cs`.
 
-| Setting | Value |
-| --- | --- |
-| API address | `http://localhost:5000` |
-| Security mode / policy | `None` / `None` (development only) |
-| Untrusted certificates | Auto-accepted (development only) |
-| Session timeout | 60 s |
-| Reconnect policy | Max 2 retries |
-| Publishing interval | 1 s |
-| Lifetime / keep-alive count | 100 / 10 |
-| Max notifications per publish | 1000 |
+| Setting                       | Value                              |
+| ----------------------------- | ---------------------------------- |
+| API address                   | `http://localhost:5000`            |
+| Security mode / policy        | `None` / `None` (development only) |
+| Untrusted certificates        | Auto-accepted (development only)   |
+| Session timeout               | 60 s                               |
+| Reconnect policy              | Max 2 retries                      |
+| Publishing interval           | 1 s                                |
+| Lifetime / keep-alive count   | 100 / 10                           |
+| Max notifications per publish | 1000                               |
 
 ## Known limitations
 
@@ -123,29 +123,33 @@ This project is intentionally small. Things it does **not** do yet:
 ## Roadmap
 
 **Reliability**
-- [ ] Pass the host's stopping token into the monitoring loop
-- [ ] Retry with backoff and re-establish subscriptions after failures
+
 - [ ] Expose connection state and last-update time (health endpoint)
 
 **Data model**
+
 - [ ] Add `Quality` and `Timestamp` (from the OPC UA `DataValue`) to `ISensor`
 - [ ] Represent "no data yet" explicitly and return it from the API
 - [ ] Support Boolean, Int16/32 and Float values, with optional scaling to engineering units
 
 **Configuration**
+
 - [ ] Move endpoint, security settings and the tag list (ID, `NodeId`, type, scaling) to `appsettings.json`
 - [ ] Support multiple tags and multiple servers
 
 **Security**
+
 - [ ] Signed and encrypted sessions (for example `Basic256Sha256` with `SignAndEncrypt`)
 - [ ] Proper certificate trust handling and username/password authentication
 
 **Protocol breadth**
+
 - [ ] Introduce a driver abstraction (connect, read/subscribe, write, health)
 - [ ] Add a second southbound driver (for example Modbus TCP)
 - [ ] Use the SDK's alarms and conditions support that is already enabled in `Program.cs`
 
 **Operations**
+
 - [ ] Docker Compose setup with an OPC UA simulator
 - [ ] Unit tests for status-code handling and tag mapping
 - [ ] Structured logging and basic metrics (updates per second, reconnects, bad-quality count)

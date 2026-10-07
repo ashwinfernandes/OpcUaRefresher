@@ -29,7 +29,7 @@ builder.Services.AddOpcUa().AddClient(options =>
         SessionTimeout = TimeSpan.FromSeconds(60),
         ReconnectPolicy = new ReconnectPolicyOptions
         {
-            MaxRetries = 2
+            Strategy = BackoffStrategy.Exponential
         }
     };
 }).AddDiscoveryAndConnect(options =>
